@@ -17,7 +17,7 @@
   body{background:radial-gradient(60vw 40vh at 8% -8%,#e0e7ff 0,transparent 60%),radial-gradient(50vw 40vh at 100% 0,#fce7f3 0,transparent 55%),var(--bg);
     color:var(--ink);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
   body.idle{cursor:none}
-  .stage{height:100vh;display:flex;flex-direction:column;padding:1.8vw 2.4vw}
+  .stage{height:100vh;display:flex;flex-direction:column;padding:1.8vw 2.4vw;overflow-y:auto}
   .head{display:flex;align-items:center;justify-content:space-between;gap:1vw;margin-bottom:1.2vw;flex:none}
   .brand{display:flex;align-items:center;gap:.9vw;font-weight:800;font-size:clamp(18px,2.1vw,40px)}
   .brand i{font-style:normal;display:grid;place-items:center;width:clamp(36px,3.6vw,64px);height:clamp(36px,3.6vw,64px);border-radius:1vw;background:linear-gradient(135deg,var(--primary),var(--pink));font-size:clamp(18px,2vw,34px);box-shadow:var(--shadow)}
@@ -69,6 +69,15 @@
   .win{text-align:center;padding:1.6vw;border-radius:2vw;color:#fff;font-size:clamp(26px,4.2vw,80px);font-weight:800;margin-bottom:1.4vw;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 1.4vw 3vw -1.2vw rgba(16,185,129,.7)}
   .win.spy{background:linear-gradient(135deg,#f43f5e,#be123c);box-shadow:0 1.4vw 3vw -1.2vw rgba(244,63,94,.7)}
   .win.stop{background:linear-gradient(135deg,#64748b,#334155)}
+  /* Màn kết thúc: thu gọn để bảng vai trò/từ khoá luôn nằm gọn trong màn hình */
+  .final .win{padding:.7vw;font-size:clamp(20px,3vw,56px);margin-bottom:1vw}
+  .final .panel{padding:1.2vw}
+  .final .verdict{display:flex;align-items:center;justify-content:center;gap:1.2vw;flex-wrap:wrap}
+  .final .verdict .emoji{font-size:clamp(30px,3.4vw,64px)}
+  .final .verdict .name{font-size:clamp(28px,4vw,76px);margin:0}
+  .final .verdict .word{font-size:clamp(16px,2vw,38px);padding:.4vw 1.2vw}
+  .final table{font-size:clamp(14px,1.6vw,30px)}
+  .final td,.final th{padding:.35vw .6vw}
   table{width:100%;border-collapse:collapse;font-size:clamp(15px,1.9vw,36px)}
   td,th{padding:.7vw .6vw;border-bottom:1px solid var(--line);text-align:left}
   th{color:var(--muted);font-weight:600;font-size:.7em}
@@ -295,10 +304,10 @@ function drawResult(){
 
   let banner='';
   if(R.winner){ const w=R.winner==='civ'; banner = `<div class="win ${w?'':'spy'}">${w?'🎉 Khán giả & người chơi chiến thắng!':'🕵️ Gián điệp chiến thắng!'}</div>`; }
-  app.innerHTML = `${banner}<div class="cols">
+  app.innerHTML = `${R.winner?'<div class="final">':''}${banner}<div class="cols">
     <div class="panel"><div class="title" style="font-size:clamp(20px,2.6vw,50px);margin-bottom:1.4vw">📊 Kết quả vòng ${r.round||R.round} · ${r.total||0} lượt bình chọn</div>${bars}</div>
     <div><div class="panel">${v}</div>
-      ${R.winner?`<div class="panel" style="margin-top:1.4vw">${revealTable()}</div>`:(hist?`<div class="hist">${hist}</div>`:'')}</div></div>`;
+      ${R.winner?`<div class="panel" style="margin-top:1.4vw">${revealTable()}</div>`:(hist?`<div class="hist">${hist}</div>`:'')}</div></div>${R.winner?'</div>':''}`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.bar>i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%')));
 }
 
