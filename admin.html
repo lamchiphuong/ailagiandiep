@@ -311,7 +311,7 @@ function secretPanel(){
 function drawDescribe(){
   const list = sorted(R.players);
   app.innerHTML = `<div class="card"><h2>🗣 Vòng ${R.round}: Người chơi lần lượt mô tả từ khoá</h2>
-      <div class="muted" style="margin-bottom:14px">Mỗi người tối đa 10 giây — bấm vào thẻ người chơi để bắt đầu đếm giờ. Trò chơi kéo dài đến khi chỉ còn 1 người cuối cùng.</div>
+      <div class="muted" style="margin-bottom:14px">Mỗi người tối đa 10 giây — bấm vào thẻ người chơi để bắt đầu đếm giờ. Tìm ra gián điệp là trò chơi kết thúc, Dân thắng. Nếu gián điệp sống sót đến cuối, Gián điệp thắng.</div>
       <div class="timer" id="tm"></div>
       <div class="pgrid">${list.map(p=>pcard(p,{click:true,status:p=>p.alive?'Đang thi đấu':'Đã bị loại'})).join('')}</div></div>
     ${secretPanel()}
@@ -349,7 +349,8 @@ function drawVote(){
   drawQR(document.getElementById('qr2'),190); updateLive();
 }
 function updateLive(){ const c=document.getElementById('cnt'); if(c) c.textContent = Object.keys(R.votes||{}).length; }
-/* Luật: chơi đến khi chỉ còn 1 người sống sót — người đó là người chiến thắng. */
+/* Luật: tìm ra (loại) gián điệp -> trò chơi kết thúc, Dân thắng.
+   Nếu gián điệp sống sót đến cuối (chỉ còn 1 người) -> Gián điệp thắng. */
 function checkWinner(players){
   const arr = Object.entries(players).filter(([id,p])=>p.alive);
   if(arr.length!==1) return null;
@@ -370,10 +371,13 @@ function endVote(){
 }
 function applyElim(upd, id, label){
   upd['players/'+id+'/alive']=false; upd['history/'+R.round]=label;
+  if(R.players[id].role==='spy'){   /* gián điệp bị tìm ra -> kết thúc, Dân thắng */
+    upd.winner = 'civ'; upd.winnerId = id; return;
+  }
   const copy = JSON.parse(JSON.stringify(R.players)); copy[id].alive=false;
   const w = checkWinner(copy);
   upd.winner = w ? w.side : null;   /* 'civ' | 'spy' (giữ tương thích trang khán giả) */
-  upd.winnerId = w ? w.id : null;   /* id người chiến thắng cuối cùng */
+  upd.winnerId = w ? w.id : null;
 }
 
 /* --- Result --- */
@@ -396,8 +400,11 @@ function drawResult(){
   let v = '';
   if(R.winner){
     const wp = R.players[R.winnerId], isSpy = R.winner==='spy';
-    v += `<div class="win ${isSpy?'spy':''}">🏆 ${wp?esc(wp.name):'Người cuối cùng'} chiến thắng!
-      <div style="font-size:16px;font-weight:600;margin-top:6px;opacity:.9">Người sống sót cuối cùng · ${isSpy?'🕵️ là Gián điệp':'Dân thường'}</div></div>`;
+    v += isSpy
+      ? `<div class="win spy">🏆 ${wp?esc(wp.name):'Gián điệp'} chiến thắng!
+        <div style="font-size:16px;font-weight:600;margin-top:6px;opacity:.9">🕵️ Gián điệp sống sót đến cuối cùng</div></div>`
+      : `<div class="win">🏆 Dân thường chiến thắng!
+        <div style="font-size:16px;font-weight:600;margin-top:6px;opacity:.9">🕵️ Đã tìm ra gián điệp${wp?': '+esc(wp.name):''} — trò chơi kết thúc</div></div>`;
   }
   if(r.noVotes){
     v += `<div class="verdict"><div class="emoji">🤷</div><div class="muted">Chưa có ai bình chọn</div></div>
