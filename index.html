@@ -84,7 +84,11 @@ const COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4'];
 
 const app = document.getElementById('app');
 const qs = new URLSearchParams(location.search);
-let db, ref, R=null, room='', mode='main', showWord=false;
+let db, ref, R=null, room='', mode='main', showWord=false, lastRound=null;
+function wordsList(){
+  const h = R.wordsHist||{};
+  return Object.keys(h).sort((a,b)=>a.slice(1)-b.slice(1)).map(k=>`Vòng ${k.slice(1)}: Dân <b>${esc(h[k].civ)}</b> · Gián điệp <b>${esc(h[k].spy)}</b>`).join('<br>');
+}
 
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const idNum = id => parseInt(String(id).slice(1))||0;
@@ -106,8 +110,15 @@ function boot(){
   join(room);
 }
 function viewRoom(msg){
-  app.innerHTML = `<div class="card"><h2>Nhập mã phòng</h2><input type="text" id="rc" style="letter-spacing:2px" placeholder="vd: 20-11">
-    ${msg?`<div class="err">${esc(msg)}</div>`:''}<button class="primary full" style="margin-top:12px" onclick="doRoom()">Vào</button></div>`;
+  app.innerHTML = `<div class="card"><h2>Nhập mã phòng</h2><input type="text" id="rc" style="letter-spacing:2px" placeholder="vd: 20-11" value="${esc(room)}">
+    ${msg?`<div class="err">${esc(msg)}</div>`:''}<button class="primary full" style="margin-top:12px" onclick="doRoom()">Vào</button>
+    ${room?`<button class="ghost full" style="margin-top:8px" onclick="join('${esc(room)}')">← Quay lại phòng ${esc(room)}</button>`:''}</div>`;
+}
+function changeRoom(){
+  if(ref) ref.off();
+  mode='main'; showWord=false; lastRound=null; R=null;
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  viewRoom();
 }
 function doRoom(){ const v=document.getElementById('rc').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,''); if(!v) return viewRoom('Nhập mã phòng'); join(v); }
 function join(code){
@@ -148,10 +159,12 @@ function doPlayer(){
 function render(){
   if(mode==='plogin' && R && R.players) return viewPlayerLogin();
   if(!R || !R.phase){
-    app.innerHTML = `<div class="card center"><div style="font-size:48px">⏳</div><h2>Chương trình sắp bắt đầu</h2><div class="muted">Giữ nguyên trang này, game sẽ tự cập nhật.</div></div>`; return;
+    app.innerHTML = `<div class="card center"><div style="font-size:48px">⏳</div><h2>Chương trình sắp bắt đầu</h2><div class="muted">Giữ nguyên trang này, game sẽ tự cập nhật.</div>
+      <div class="muted" style="margin-top:12px">Phòng <b>${esc(room)}</b> · <button class="link" onclick="changeRoom()">Đổi phòng</button></div></div>`; return;
   }
   const list = sorted(R.players), alive = list.filter(p=>p.alive);
   const me = myPlayer();
+  if(R.round!==lastRound){ lastRound=R.round; showWord=false; }
   let h = `<div class="stats"><div class="stat"><div class="n">${R.round}</div><div class="t">VÒNG ĐANG CHƠI</div></div>
     <div class="stat"><div class="n">${alive.length}/${list.length}</div><div class="t">NGƯỜI CÒN LẠI</div></div></div>`;
 
@@ -165,6 +178,7 @@ function render(){
 
   h += `<div class="card"><h2>Người chơi</h2><div class="pchips">${list.map(p=>`<span class="pchip ${p.alive?'':'dead'}"><span class="av" style="background:${color(p.id)}">${ini(p.name)}</span>${esc(p.name)}</span>`).join('')}</div></div>`;
   if(!me) h += `<div class="center"><button class="link" onclick="mode='plogin';render()">🎭 Tôi là người chơi trên sân khấu</button></div>`;
+  h += `<div class="center muted" style="margin-top:6px">Phòng <b>${esc(room)}</b> · <button class="link" onclick="changeRoom()">Đổi phòng</button></div>`;
   app.innerHTML = h;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.bar>i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%')));
 }
@@ -177,7 +191,7 @@ function winnerBanner(){
 }
 function keywordCard(me){
   const word = R.words ? R.words[me.role] : '';
-  return `<div class="card">${me.alive?'':'<div class="deadb">💀 Bạn đã bị loại</div>'}<h2>🔒 Từ khoá của ${esc(me.name)}</h2>
+  return `<div class="card">${me.alive?'':'<div class="deadb">💀 Bạn đã bị loại</div>'}<h2>🔒 Từ khoá vòng ${R.round} của ${esc(me.name)}</h2>
     <div class="word">${showWord?`<div class="w">${esc(word)}</div>`:`<div class="h">••••••</div>`}</div>
     <button class="ghost full" onclick="showWord=!showWord;render()">${showWord?'🙈 Ẩn từ khoá':'👁 Hiện từ khoá'}</button></div>`;
 }
@@ -218,7 +232,7 @@ function castVote(id){
 function resultCard(){
   if(R.winner==='stopped'){
     return `<div class="card"><h2>Tiết lộ vai trò</h2><table><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th></tr>${
-      sorted(R.players).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.role==='spy'?'🕵️ Gián điệp':'Dân'}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table></div>`;
+      sorted(R.players).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.role==='spy'?'🕵️ Gián điệp':'Dân'}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table><div class="muted" style="margin-top:10px;line-height:1.8">${wordsList()}</div></div>`;
   }
   const r = R.result||{counts:[],top:[]}, counts=r.counts||[], top=r.top||[];
   const nm = id=>esc((R.players[id]||{}).name);
@@ -234,7 +248,7 @@ function resultCard(){
   h += `</div>`;
   if(R.winner){
     h += `<div class="card"><h2>Tiết lộ vai trò</h2><table><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th></tr>${
-      sorted(R.players).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.role==='spy'?'🕵️ Gián điệp':'Dân'}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table></div>`;
+      sorted(R.players).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.role==='spy'?'🕵️ Gián điệp':'Dân'}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table><div class="muted" style="margin-top:10px;line-height:1.8">${wordsList()}</div></div>`;
   } else h += `<div class="muted center" style="margin-bottom:14px">Chờ MC chuyển sang bước tiếp theo…</div>`;
   return h;
 }
