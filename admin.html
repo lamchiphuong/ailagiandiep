@@ -402,10 +402,13 @@ function drawResult(){
     const p = R.players[r.elim];
     v += `<div class="verdict"><div class="emoji">🚪</div><div class="muted">Người bị loại</div><div class="name">${esc(p.name)}</div>
       <div class="word">Từ khoá: ${esc(R.words[p.role])}</div></div>`;
-    if(!R.winner){
+    if(!R.winner && p.role!=='spy'){
+      v += `<div class="muted" style="margin-top:14px">${alivePl().some(x=>x.role==='spy')?'Gián điệp vẫn còn trong cuộc':'Gián điệp đã ra khỏi cuộc từ trước'} — giữ nguyên từ khoá cho vòng sau.</div>
+        <div class="actions"><button class="primary big" onclick="nextRound()">Sang vòng ${R.round+1} ▶</button></div>`;
+    } else if(!R.winner){
       if(!nextWords || nextWords.round!==R.round) nextWords = {round:R.round, ...randPair()};
       const opts = PAIRS.map((q,i)=>`<option value="${i}">${esc(q[0])} — ${esc(q[1])}</option>`).join('');
-      v += `<div style="margin-top:16px;text-align:left"><label class="l">🔤 Từ khoá cho vòng ${R.round+1} (mỗi vòng một cặp mới)</label>
+      v += `<div style="margin-top:16px;text-align:left"><label class="l">🔤 Gián điệp đã bị loại — đổi từ khoá cho vòng ${R.round+1}</label>
         <select onchange="pickNext(this.value)"><option value="">— Chọn cặp có sẵn —</option>${opts}</select>
         <div class="two"><div><label class="l">Từ của DÂN</label><input type="text" id="nciv" value="${esc(nextWords.civ)}" oninput="saveNext()"></div>
           <div><label class="l">Từ của GIÁN ĐIỆP</label><input type="text" id="nspy" value="${esc(nextWords.spy)}" oninput="saveNext()"></div></div>
@@ -453,11 +456,16 @@ function wordsList(){
   return Object.keys(h).sort((a,b)=>a.slice(1)-b.slice(1)).map(k=>`Vòng ${k.slice(1)}: Dân <b>${esc(h[k].civ)}</b> · Gián điệp <b>${esc(h[k].spy)}</b>`).join('<br>');
 }
 function nextRound(){
-  saveNext();
-  const civ = (nextWords&&nextWords.civ||'').trim(), spy = (nextWords&&nextWords.spy||'').trim();
-  if(!civ||!spy){ alert('Hãy chọn/nhập cặp từ khoá cho vòng tiếp theo.'); return; }
-  if(civ.toLowerCase()===spy.toLowerCase()){ alert('Hai từ khoá phải khác nhau.'); return; }
-  if(civ===R.words.civ && spy===R.words.spy && !confirm('Cặp từ khoá giống hệt vòng trước. Vẫn tiếp tục?')) return;
+  /* Chỉ đổi từ khoá khi gián điệp vừa bị loại; ngược lại giữ nguyên. */
+  const spyOut = R.result && R.result.elim && R.players[R.result.elim].role==='spy';
+  let civ = R.words.civ, spy = R.words.spy;
+  if(spyOut){
+    saveNext();
+    civ = (nextWords&&nextWords.civ||'').trim(); spy = (nextWords&&nextWords.spy||'').trim();
+    if(!civ||!spy){ alert('Hãy chọn/nhập cặp từ khoá cho vòng tiếp theo.'); return; }
+    if(civ.toLowerCase()===spy.toLowerCase()){ alert('Hai từ khoá phải khác nhau.'); return; }
+    if(civ===R.words.civ && spy===R.words.spy && !confirm('Cặp từ khoá giống hệt vòng trước. Vẫn tiếp tục?')) return;
+  }
   const n = R.round+1;
   nextWords = null;
   ref.update({phase:'describe', round:n, votes:null, result:null, candidates:null, words:{civ,spy}, ['wordsHist/r'+n]:{civ,spy}});
