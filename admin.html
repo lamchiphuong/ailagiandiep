@@ -184,7 +184,7 @@ function chips(){
 function endEarly(){
   if(!confirm('Kết thúc sớm trò chơi?\nVai trò và từ khoá của mọi người sẽ được tiết lộ cho cả khán giả.')) return;
   clearInterval(tInt); timer=null;
-  ref.update({phase:'result', winner:'stopped'});
+  ref.update({phase:'result', winner:'stopped', timer:null});
 }
 function wipeData(){
   if(!confirm(`Xoá toàn bộ dữ liệu phòng "${room}" trên Firebase (người chơi, vai trò, phiếu bầu, kết quả)?\nKhông thể khôi phục.`)) return;
@@ -320,13 +320,14 @@ function drawDescribe(){
 }
 function startTimer(id){
   clearInterval(tInt); timer={id,left:10}; paintTimer();
+  ref.update({timer:{id, at:firebase.database.ServerValue.TIMESTAMP}});
   tInt=setInterval(()=>{ timer.left--; if(timer.left<=0) clearInterval(tInt); paintTimer(); },1000);
 }
 function paintTimer(){
   document.querySelectorAll('.pc[data-id]').forEach(el=>el.classList.toggle('speaking',!!timer&&el.dataset.id===timer.id));
   const t=document.getElementById('tm'); if(t) t.textContent = timer ? (timer.left>0?timer.left:'⏰ Hết giờ!') : '';
 }
-function openVote(){ clearInterval(tInt); timer=null; ref.update({phase:'vote', votes:null, result:null}); }
+function openVote(){ clearInterval(tInt); timer=null; ref.update({phase:'vote', votes:null, result:null, timer:null}); }
 
 /* --- Vote --- */
 function drawVote(){
@@ -468,7 +469,7 @@ function nextRound(){
   }
   const n = R.round+1;
   nextWords = null;
-  ref.update({phase:'describe', round:n, votes:null, result:null, candidates:null, words:{civ,spy}, ['wordsHist/r'+n]:{civ,spy}});
+  ref.update({phase:'describe', round:n, votes:null, result:null, candidates:null, timer:null, words:{civ,spy}, ['wordsHist/r'+n]:{civ,spy}});
 }
 function revote(tied){ ref.update({phase:'vote', votes:null, result:null, candidates: tied ? R.result.top : (R.candidates||null)}); }
 function newGame(){ view=''; ref.set(null); }
