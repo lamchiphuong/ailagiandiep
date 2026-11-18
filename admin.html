@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ai là gián điệp? — MC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5fb; --card:#fff; --ink:#1e1b4b; --muted:#6b7280; --line:#e6e8f2;
+    --primary:#6366f1; --primary2:#8b5cf6; --pink:#ec4899; --green:#10b981; --red:#ef4444; --amber:#f59e0b;
+    --shadow:0 10px 30px -12px rgba(79,70,229,.25);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 500px at 10% -10%,#e0e7ff 0,transparent 60%),radial-gradient(900px 500px at 100% 0,#fce7f3 0,transparent 55%),var(--bg);
+    color:var(--ink);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px}
+  .brand i{font-style:normal;display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--pink));font-size:22px;box-shadow:var(--shadow)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;color:var(--muted)}
+  .chip b{color:var(--ink)}
+  .card{background:var(--card);border-radius:24px;padding:22px;box-shadow:var(--shadow);border:1px solid rgba(99,102,241,.08);margin-bottom:18px}
+  .card h2{margin:0 0 14px;font-size:18px;font-weight:700}
+  .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}}
+  button{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:14px;padding:12px 18px;color:var(--ink);background:#eef0ff;transition:transform .1s,box-shadow .2s,background .2s}
+  button:hover{background:#e3e6ff}
+  button:active{transform:scale(.97)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 8px 20px -8px rgba(99,102,241,.7)}
+  .primary:hover{background:linear-gradient(135deg,#5558e8,#7c4ee6)}
+  .danger{background:linear-gradient(135deg,#f43f5e,#ef4444);color:#fff;box-shadow:0 8px 20px -8px rgba(239,68,68,.7)}
+  .danger:hover{background:linear-gradient(135deg,#e11d48,#dc2626)}
+  .good{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+  .good:hover{background:linear-gradient(135deg,#0ea371,#047857)}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--muted)}
+  .full{width:100%}
+  .big{padding:18px 24px;font-size:19px;border-radius:18px}
+  input[type=text],select{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fafbff;color:var(--ink);font:inherit;outline:none}
+  input[type=text]:focus,select:focus{border-color:var(--primary);background:#fff}
+  label.l{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+  .nrow{display:flex;gap:10px;align-items:center;margin-bottom:9px}
+  .num{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .muted{color:var(--muted);font-size:14px}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+  .pc{position:relative;border-radius:22px;background:#fff;border:2px solid var(--line);padding:20px 14px;text-align:center;transition:.2s}
+  .pc .av{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;color:#fff;font-size:26px;font-weight:800}
+  .pc .nm{font-weight:700;font-size:18px}
+  .pc.dead{opacity:.4;filter:grayscale(1)}
+  .pc.dead .nm{text-decoration:line-through}
+  .pc.speaking{border-color:var(--primary);box-shadow:0 0 0 6px rgba(99,102,241,.15);transform:translateY(-3px)}
+  .pc.click{cursor:pointer}
+  .pc.click:hover{border-color:#c7cbff}
+  .pc .st{margin-top:6px;font-size:12px;font-weight:600;color:var(--muted)}
+  .tagr{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-top:6px}
+  .tagr.civ{background:#dbeafe;color:#1d4ed8}.tagr.spy{background:#fee2e2;color:#b91c1c}
+  .bigstat{text-align:center;padding:10px}
+  .bigstat .n{font-size:84px;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--primary),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bar-row{margin-bottom:16px}
+  .bar-top{display:flex;justify-content:space-between;margin-bottom:6px;font-weight:700;font-size:18px}
+  .bar{height:22px;background:#eef0fb;border-radius:999px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#818cf8,#6366f1);border-radius:999px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+  .bar-row.topv .bar>i{background:linear-gradient(90deg,#fb7185,#ef4444)}
+  .verdict{text-align:center;padding:10px}
+  .verdict .emoji{font-size:56px}
+  .verdict .name{font-size:42px;font-weight:800;color:var(--red);margin:4px 0}
+  .verdict .word{display:inline-block;margin-top:8px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:14px;padding:8px 18px;font-weight:700;font-size:20px}
+  .win{text-align:center;padding:24px;border-radius:22px;color:#fff;font-size:30px;font-weight:800;margin-bottom:18px;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 14px 30px -12px rgba(16,185,129,.7)}
+  .win.spy{background:linear-gradient(135deg,#f43f5e,#be123c);box-shadow:0 14px 30px -12px rgba(244,63,94,.7)}
+  .timer{font-size:72px;font-weight:800;text-align:center;color:var(--primary);min-height:88px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  td,th{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:13px}
+  .qrbox{display:grid;place-items:center;padding:12px;background:#fff;border-radius:18px;border:1px solid var(--line);width:max-content;margin:0 auto}
+  .err{color:var(--red);font-size:14px;margin-top:8px}
+  code{background:#eef0ff;padding:2px 6px;border-radius:6px;font-size:13px}
+  .center{text-align:center}
+  .secret{background:#fffbeb;border:1px dashed #fcd34d}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .actions>*{flex:1;min-width:200px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><i>🕵️</i><span>Ai là gián điệp?</span></div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* Dán Firebase Realtime Database URL vào đây (hoặc nhập trên màn hình khi mở lần đầu). */
+const DEFAULT_DB_URL = 'https://quaysomayman-be666-default-rtdb.asia-southeast1.firebasedatabase.app';
+/* Tên file trang KHÁN GIẢ (để tự tạo link/QR) */
+const AUDIENCE_FILE = 'gian-diep-khangia.html';
+
+const PAIRS = [
+  ['Trà sữa','Cà phê'],['Bút bi','Bút chì'],['Phở','Bún bò'],['Mèo','Hổ'],['Xe máy','Xe đạp'],
+  ['Áo mưa','Ô'],['Bánh mì','Xôi'],['Điện thoại','Máy tính bảng'],['Đũa','Muỗng'],['Biển','Hồ'],
+  ['Kem','Sinh tố'],['Gối','Chăn'],['Giáo viên','Bác sĩ'],['Sữa','Nước ngọt'],['Chó','Sói'],
+  ['Mặt trăng','Mặt trời'],['Bóng đá','Bóng rổ'],['Máy bay','Trực thăng'],['Bảng đen','Máy chiếu'],
+  ['Sách','Vở'],['Thước kẻ','Compa'],['Cô giáo','Mẹ']
+];
+const COLORS = ['#6366f1','#ec4899','#10b981','#f59e0b','#06b6d4'];
+
+const app = document.getElementById('app');
+let db, ref, R = null, room = '', draft = null, view = '', showSecret = false;
+let timer = null, tInt = null;
+
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const idNum = id => parseInt(String(id).slice(1))||0;
+const sorted = pl => Object.entries(pl||{}).map(([id,p])=>({id,...p})).sort((a,b)=>idNum(a.id)-idNum(b.id));
+const color = id => COLORS[(idNum(id)-1)%COLORS.length];
+const dbUrl = () => DEFAULT_DB_URL || localStorage.getItem('gd-db-url') || '';
+const alivePl = () => sorted(R.players).filter(p=>p.alive);
+const roleName = r => r==='spy' ? 'Gián điệp' : 'Dân';
+function candidates(){
+  const a = alivePl().map(p=>p.id);
+  if(R.candidates && R.candidates.length){ const c = R.candidates.filter(id=>a.includes(id)); if(c.length) return c; }
+  return a;
+}
+
+/* ---------- BOOT ---------- */
+function boot(){
+  if(typeof firebase==='undefined'){ app.innerHTML=`<div class="card"><h2>Không tải được Firebase</h2><div class="err">Kiểm tra mạng rồi tải lại trang.</div></div>`; return; }
+  if(!dbUrl()) return viewConfig();
+  try{ firebase.initializeApp({databaseURL:dbUrl()}); db=firebase.database(); }
+  catch(e){ localStorage.removeItem('gd-db-url'); return viewConfig('URL không hợp lệ'); }
+  viewRoom();
+}
+function viewConfig(err){
+  view='config';
+  app.innerHTML = `<div class="card" style="max-width:640px;margin:40px auto"><h2>🔌 Kết nối Firebase (làm 1 lần)</h2>
+    <div class="muted" style="line-height:1.8;margin-bottom:12px">
+      1) Vào <b>console.firebase.google.com</b> → tạo project → <b>Realtime Database</b> → Create database → <b>Test mode</b> (hoặc Rules: <code>{"rules":{".read":true,".write":true}}</code>).<br>
+      2) Copy đường dẫn dạng <code>https://xxxx-default-rtdb.firebaseio.com</code> và dán vào đây.</div>
+    <input type="text" id="dburl" placeholder="https://xxxx-default-rtdb.firebaseio.com">
+    ${err?`<div class="err">${esc(err)}</div>`:''}
+    <button class="primary full" style="margin-top:14px" onclick="saveConfig()">Lưu & tiếp tục</button></div>`;
+}
+function saveConfig(){
+  const v = document.getElementById('dburl').value.trim().replace(/\/$/,'');
+  if(!/^https:\/\/.+/.test(v)) return viewConfig('Đường dẫn phải bắt đầu bằng https://');
+  localStorage.setItem('gd-db-url',v); location.reload();
+}
+function viewRoom(){
+  view='room'; document.getElementById('chips').innerHTML='';
+  app.innerHTML = `<div class="card" style="max-width:520px;margin:40px auto"><h2>🚪 Mã phòng</h2>
+    <div class="muted" style="margin-bottom:10px">Khán giả sẽ vào đúng phòng này khi quét QR.</div>
+    <input type="text" id="roomcode" value="${esc(localStorage.getItem('gd-room')||'20-11')}">
+    <button class="primary full" style="margin-top:14px" onclick="openRoom()">Mở phòng</button>
+    <button class="ghost full" style="margin-top:8px" onclick="if(confirm('Đổi Firebase URL?')){localStorage.removeItem('gd-db-url');location.reload();}">Đổi Firebase URL</button></div>`;
+}
+function openRoom(){
+  const v = document.getElementById('roomcode').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
+  if(!v){ alert('Mã phòng chỉ gồm chữ không dấu, số, gạch.'); return; }
+  room=v; localStorage.setItem('gd-room',room);
+  if(ref) ref.off();
+  ref = db.ref('gian-diep/'+room); view=''; R=null;
+  ref.on('value', s=>{ R=s.val(); render(); },
+    e=>{ app.innerHTML=`<div class="card"><div class="err">Lỗi Firebase: ${esc(e.message)} — kiểm tra Rules của Realtime Database.</div></div>`; });
+}
+
+/* ---------- RENDER ---------- */
+function chips(){
+  let h = `<span class="chip">Phòng <b>${esc(room)}</b></span>`;
+  const inGame = R && R.phase && R.phase!=='lobby';
+  if(inGame){
+    h += `<span class="chip">Vòng <b>${R.round}</b></span><span class="chip">Còn lại <b>${alivePl().length}/${Object.keys(R.players).length}</b></span>
+      <button class="ghost" style="padding:7px 14px" onclick="showSecret=!showSecret;view='';render()">${showSecret?'🙈 Ẩn bí mật':'👁 Xem bí mật'}</button>`;
+  }
+  if(inGame && !R.winner) h += `<button class="danger" style="padding:7px 14px" onclick="endEarly()">⏹ Kết thúc sớm</button>`;
+  h += `<button class="ghost" style="padding:7px 14px;color:var(--red)" onclick="wipeData()">🗑 Xoá dữ liệu</button>`;
+  document.getElementById('chips').innerHTML = h;
+}
+function endEarly(){
+  if(!confirm('Kết thúc sớm trò chơi?\nVai trò và từ khoá của mọi người sẽ được tiết lộ cho cả khán giả.')) return;
+  clearInterval(tInt); timer=null;
+  ref.update({phase:'result', winner:'stopped'});
+}
+function wipeData(){
+  if(!confirm(`Xoá toàn bộ dữ liệu phòng "${room}" trên Firebase (người chơi, vai trò, phiếu bầu, kết quả)?\nKhông thể khôi phục.`)) return;
+  const clearNames = confirm('Xoá luôn tên người chơi và từ khoá đã nhập sẵn trên máy này?\n(OK = xoá hết, Hủy = giữ lại để dùng cho ván sau)');
+  clearInterval(tInt); timer=null;
+  if(clearNames) localStorage.removeItem('gd-draft');
+  view='';
+  ref.remove().then(()=>alert('Đã xoá dữ liệu phòng "'+room+'".')).catch(e=>alert('Không xoá được: '+e.message));
+}
+function render(){
+  chips();
+  const ph = (!R||!R.phase) ? 'lobby' : R.phase;
+  if(ph==='lobby') return renderLobby();
+  const key = [ph,R.round,(R.candidates||[]).join(','),showSecret,alivePl().length,R.winner||'',R.result&&R.result.elim||''].join('|');
+  if(ph==='vote' && view===key){ updateLive(); return; }
+  if(view===key) return;
+  view = key;
+  if(ph==='describe') drawDescribe();
+  else if(ph==='vote') drawVote();
+  else if(ph==='result') drawResult();
+}
+
+/* --- Lobby --- */
+function loadDraft(){
+  try{ const d = JSON.parse(localStorage.getItem('gd-draft')); if(d && d.names && d.names.length===5) return d; }catch(e){}
+  return {names:['','','','',''],civ:'',spy:'',spyIdx:-1};
+}
+function saveDraft(){
+  if(view!=='lobby') return;
+  draft.names = [...document.querySelectorAll('.nm')].map(i=>i.value);
+  draft.civ = document.getElementById('civ').value; draft.spy = document.getElementById('spy').value;
+  draft.spyIdx = parseInt(document.getElementById('spyIdx').value);
+  localStorage.setItem('gd-draft',JSON.stringify(draft));
+}
+function audBase(){
+  const saved = localStorage.getItem('gd-aud-base');
+  if(saved) return saved;
+  return location.href.split('?')[0].split('#')[0].replace(/[^/]*$/,AUDIENCE_FILE);
+}
+function audLink(){
+  const base = (document.getElementById('audbase')?document.getElementById('audbase').value.trim():'') || audBase();
+  return base + '?room=' + encodeURIComponent(room) + '&db=' + encodeURIComponent(dbUrl());
+}
+function renderLobby(){
+  if(view==='lobby') return;
+  view='lobby'; draft = loadDraft();
+  const rows = draft.names.map((n,i)=>`<div class="nrow"><span class="num" style="background:${COLORS[i]}">${i+1}</span>
+      <input type="text" class="nm" placeholder="Tên người chơi ${i+1}" value="${esc(n)}" oninput="saveDraft()"></div>`).join('');
+  const opts = PAIRS.map((p,i)=>`<option value="${i}">${esc(p[0])} — ${esc(p[1])}</option>`).join('');
+  const spyOpts = `<option value="-1">🎲 Ngẫu nhiên</option>` + [1,2,3,4,5].map((n,i)=>`<option value="${i}" ${draft.spyIdx===i?'selected':''}>Người chơi số ${n}</option>`).join('');
+  app.innerHTML = `<div class="cols">
+    <div>
+      <div class="card"><h2>① 5 người chơi trên sân khấu</h2>${rows}</div>
+      <div class="card"><h2>② Chọn cặp từ khoá</h2>
+        <select onchange="pickPair(this.value)"><option value="">— Chọn cặp có sẵn —</option>${opts}</select>
+        <div class="actions" style="margin-top:10px"><button class="ghost" onclick="randomPair()">🎲 Ngẫu nhiên</button><button class="ghost" onclick="swapWords()">⇄ Đảo hai từ</button></div>
+        <div class="two">
+          <div><label class="l">Từ của 4 người DÂN</label><input type="text" id="civ" value="${esc(draft.civ)}" oninput="saveDraft()"></div>
+          <div><label class="l">Từ của GIÁN ĐIỆP</label><input type="text" id="spy" value="${esc(draft.spy)}" oninput="saveDraft()"></div>
+        </div>
+        <label class="l">Ai là gián điệp?</label><select id="spyIdx" onchange="saveDraft()">${spyOpts}</select>
+      </div>
+    </div>
+    <div>
+      <div class="card center"><h2>③ Mời khán giả bình chọn</h2>
+        <div class="qrbox"><div id="qr"></div></div>
+        <label class="l" style="text-align:left">Địa chỉ trang Khán giả (đã đưa lên mạng)</label>
+        <input type="text" id="audbase" value="${esc(audBase())}" oninput="localStorage.setItem('gd-aud-base',this.value.trim());drawQR()">
+        <div class="muted" style="margin-top:8px;word-break:break-all;text-align:left" id="audlink"></div>
+        <button class="ghost full" style="margin-top:10px" onclick="copyLink()">📋 Sao chép link</button>
+      </div>
+      <button class="primary big full" onclick="startGame()">▶ BẮT ĐẦU TRÒ CHƠI</button>
+      <button class="ghost full" style="margin-top:10px" onclick="if(ref)ref.off();view='';viewRoom()">Đổi phòng</button>
+    </div></div>`;
+  drawQR();
+}
+function drawQR(target,size){
+  const link = audLink();
+  const el = target || document.getElementById('qr'); if(!el) return;
+  el.innerHTML='';
+  if(typeof QRCode!=='undefined') new QRCode(el,{text:link,width:size||200,height:size||200});
+  if(!target){ const l=document.getElementById('audlink'); if(l) l.textContent=link; }
+}
+function copyLink(){ navigator.clipboard && navigator.clipboard.writeText(audLink()).then(()=>alert('Đã sao chép link khán giả')); }
+function pickPair(i){ if(i==='') return; document.getElementById('civ').value=PAIRS[i][0]; document.getElementById('spy').value=PAIRS[i][1]; saveDraft(); }
+function randomPair(){
+  const p = PAIRS[Math.floor(Math.random()*PAIRS.length)], f = Math.random()<.5;
+  document.getElementById('civ').value=f?p[1]:p[0]; document.getElementById('spy').value=f?p[0]:p[1]; saveDraft();
+}
+function swapWords(){ const a=document.getElementById('civ'),b=document.getElementById('spy'); const t=a.value; a.value=b.value; b.value=t; saveDraft(); }
+
+function startGame(){
+  saveDraft();
+  const names = draft.names.map((n,i)=>n.trim()||('Người chơi '+(i+1)));
+  if(new Set(names.map(n=>n.toLowerCase())).size!==5){ alert('Có tên bị trùng nhau.'); return; }
+  const civ = draft.civ.trim(), spy = draft.spy.trim();
+  if(!civ||!spy){ alert('Hãy chọn/nhập cặp từ khoá.'); return; }
+  if(civ.toLowerCase()===spy.toLowerCase()){ alert('Hai từ khoá phải khác nhau.'); return; }
+  const spyIdx = draft.spyIdx>=0 ? draft.spyIdx : Math.floor(Math.random()*5);
+  const pins = new Set(); while(pins.size<5) pins.add(String(Math.floor(1000+Math.random()*9000)));
+  const pinArr = [...pins];
+  const players = {};
+  names.forEach((n,i)=>{ players['p'+(i+1)] = {name:n, alive:true, role:i===spyIdx?'spy':'civ', pin:pinArr[i]}; });
+  showSecret = false;
+  ref.set({phase:'describe', round:1, players, words:{civ,spy}, candidates:null, votes:null, result:null, winner:null, history:null});
+}
+
+/* --- Describe --- */
+function pcard(p,opts={}){
+  return `<div class="pc ${p.alive?'':'dead'} ${opts.click&&p.alive?'click':''}" data-id="${p.id}" ${opts.click&&p.alive?`onclick="startTimer('${p.id}')"`:''}>
+    <div class="av" style="background:${color(p.id)}">${esc(p.name.trim().charAt(0).toUpperCase())}</div>
+    <div class="nm">${esc(p.name)}</div>
+    ${showSecret?`<span class="tagr ${p.role}">${roleName(p.role)}</span>`:''}
+    ${opts.status?`<div class="st">${opts.status(p)}</div>`:''}</div>`;
+}
+function secretPanel(){
+  if(!showSecret) return '';
+  return `<div class="card secret"><h2>🔒 Thông tin bí mật (đừng chiếu lên màn hình!)</h2>
+    <table><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th><th>Mã PIN xem từ khoá</th></tr>${
+    sorted(R.players).map(p=>`<tr><td>${p.alive?'':'<s>'}${esc(p.name)}${p.alive?'':'</s>'}</td><td>${roleName(p.role)}</td><td><b>${esc(R.words[p.role])}</b></td><td><b>${esc(p.pin)}</b></td></tr>`).join('')}</table>
+    <div class="muted" style="margin-top:8px">Người chơi vào trang Khán giả → "Tôi là người chơi" → chọn tên + nhập PIN để xem từ khoá của mình.</div></div>`;
+}
+function drawDescribe(){
+  const list = sorted(R.players);
+  app.innerHTML = `<div class="card"><h2>🗣 Vòng ${R.round}: Người chơi lần lượt mô tả từ khoá</h2>
+      <div class="muted" style="margin-bottom:14px">Mỗi người tối đa 10 giây — bấm vào thẻ người chơi để bắt đầu đếm giờ.</div>
+      <div class="timer" id="tm"></div>
+      <div class="pgrid">${list.map(p=>pcard(p,{click:true,status:p=>p.alive?'Đang thi đấu':'Đã bị loại'})).join('')}</div></div>
+    ${secretPanel()}
+    <button class="primary big full" onclick="openVote()">🗳 MỞ BÌNH CHỌN CHO KHÁN GIẢ</button>`;
+  paintTimer();
+}
+function startTimer(id){
+  clearInterval(tInt); timer={id,left:10}; paintTimer();
+  tInt=setInterval(()=>{ timer.left--; if(timer.left<=0) clearInterval(tInt); paintTimer(); },1000);
+}
+function paintTimer(){
+  document.querySelectorAll('.pc[data-id]').forEach(el=>el.classList.toggle('speaking',!!timer&&el.dataset.id===timer.id));
+  const t=document.getElementById('tm'); if(t) t.textContent = timer ? (timer.left>0?timer.left:'⏰ Hết giờ!') : '';
+}
+function openVote(){ clearInterval(tInt); timer=null; ref.update({phase:'vote', votes:null, result:null}); }
+
+/* --- Vote --- */
+function drawVote(){
+  const cands = candidates();
+  const revote = R.candidates && R.candidates.length;
+  app.innerHTML = `<div class="cols">
+    <div class="card"><h2>🗳 Khán giả đang bình chọn${revote?' lại (chỉ giữa những người hòa phiếu)':''}</h2>
+      <div class="bigstat"><div class="n" id="cnt">0</div><div class="muted">lượt bình chọn</div></div>
+      <div class="pgrid" style="margin-top:14px">${sorted(R.players).map(p=>`<div style="${cands.includes(p.id)?'':'opacity:.3'}">${pcard(p)}</div>`).join('')}</div></div>
+    <div>
+      <div class="card center"><h2>Quét mã để bình chọn</h2><div class="qrbox"><div id="qr2"></div></div>
+        <div class="muted" style="margin-top:10px">Mỗi khán giả chỉ bình chọn 1 lần trong mỗi vòng</div></div>
+      ${secretPanel()}
+      <button class="danger big full" onclick="endVote()">⏹ KẾT THÚC BÌNH CHỌN</button>
+    </div></div>`;
+  drawQR(document.getElementById('qr2'),190); updateLive();
+}
+function updateLive(){ const c=document.getElementById('cnt'); if(c) c.textContent = Object.keys(R.votes||{}).length; }
+function checkWinner(players){
+  const arr = Object.values(players).filter(p=>p.alive);
+  if(!arr.some(p=>p.role==='spy')) return 'civ';
+  if(arr.length<=2) return 'spy';
+  return null;
+}
+function endVote(){
+  const total = Object.keys(R.votes||{}).length;
+  if(!confirm(`Kết thúc bình chọn? (đã có ${total} lượt)`)) return;
+  const cands = candidates(); const tally = {}; cands.forEach(id=>tally[id]=0);
+  let valid = 0;
+  Object.values(R.votes||{}).forEach(to=>{ if(tally[to]!==undefined){ tally[to]++; valid++; } });
+  const counts = cands.map(id=>({id,n:tally[id]})).sort((a,b)=>b.n-a.n);
+  const max = counts[0].n, top = counts.filter(c=>c.n===max).map(c=>c.id);
+  const noVotes = max===0, elim = (!noVotes && top.length===1) ? top[0] : null;
+  const upd = { phase:'result', result:{round:R.round,counts,max,top,total:valid,noVotes,elim:elim||null} };
+  if(elim) applyElim(upd, elim, R.players[elim].name);
+  ref.update(upd);
+}
+function applyElim(upd, id, label){
+  upd['players/'+id+'/alive']=false; upd['history/'+R.round]=label;
+  const copy = JSON.parse(JSON.stringify(R.players)); copy[id].alive=false;
+  upd.winner = checkWinner(copy);
+}
+
+/* --- Result --- */
+function drawStopped(){
+  app.innerHTML = `<div class="win" style="background:linear-gradient(135deg,#64748b,#334155)">⏹ Trò chơi đã kết thúc sớm</div>
+    <div class="card"><h2>Tiết lộ vai trò & từ khoá</h2>
+      <table><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th></tr>${
+      sorted(R.players).map(p=>`<tr><td>${p.alive?'':'<s>'}${esc(p.name)}${p.alive?'':'</s>'}</td><td>${roleName(p.role)}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table>
+      <div class="actions"><button class="good big" onclick="newGame()">🔄 Ván mới</button></div></div>`;
+}
+function drawResult(){
+  if(R.winner==='stopped') return drawStopped();
+  const r = R.result||{counts:[],top:[]}, counts=r.counts||[], top=r.top||[];
+  const nm = id=>esc((R.players[id]||{}).name);
+  const bars = counts.map(c=>{
+    const pct = r.total? Math.round(c.n/r.total*100):0;
+    return `<div class="bar-row ${top.includes(c.id)&&c.n>0?'topv':''}"><div class="bar-top"><span>${nm(c.id)}</span><span>${c.n} phiếu · ${pct}%</span></div>
+      <div class="bar"><i data-w="${r.total?c.n/r.total*100:0}"></i></div></div>`;}).join('');
+  let v = '';
+  if(R.winner){
+    const w = R.winner==='civ';
+    v += `<div class="win ${w?'':'spy'}">${w?'🎉 Khán giả & người chơi chiến thắng!':'🕵️ Gián điệp chiến thắng!'}</div>`;
+  }
+  if(r.noVotes){
+    v += `<div class="verdict"><div class="emoji">🤷</div><div class="muted">Chưa có ai bình chọn</div></div>
+      <div class="actions"><button class="primary" onclick="revote(false)">Bình chọn lại</button></div>`;
+  } else if(r.elim){
+    const p = R.players[r.elim];
+    v += `<div class="verdict"><div class="emoji">🚪</div><div class="muted">Người bị loại</div><div class="name">${esc(p.name)}</div>
+      <div class="word">Từ khoá: ${esc(R.words[p.role])}</div></div>`;
+    if(!R.winner) v += `<div class="actions"><button class="primary big" onclick="nextRound()">Sang vòng ${R.round+1} ▶</button></div>`;
+  } else {
+    v += `<div class="verdict"><div class="emoji">⚖️</div><div class="muted">Hòa phiếu giữa</div><div class="name" style="font-size:30px;color:var(--amber)">${top.map(nm).join(' · ')}</div></div>
+      <div class="actions"><button class="primary" onclick="revote(true)">🗳 Bình chọn lại giữa những người hòa</button><button class="ghost" onclick="randomElim()">🎲 Loại ngẫu nhiên</button></div>`;
+  }
+  if(R.winner){
+    v += `<table style="margin-top:18px"><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th></tr>${
+      sorted(R.players).map(p=>`<tr><td>${p.alive?'':'<s>'}${esc(p.name)}${p.alive?'':'</s>'}</td><td>${roleName(p.role)}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table>
+      <div class="actions"><button class="good big" onclick="newGame()">🔄 Ván mới</button></div>`;
+  }
+  const hist = R.history ? Object.entries(R.history).map(([k,x])=>`Vòng ${k}: <b>${esc(x)}</b> bị loại`).join('<br>') : '';
+  app.innerHTML = `<div class="cols"><div class="card"><h2>📊 Kết quả vòng ${r.round||R.round} · ${r.total||0} lượt bình chọn</h2>${bars}</div>
+    <div><div class="card">${v}</div>${hist?`<div class="card"><h2>Lịch sử</h2><div class="muted" style="line-height:1.8">${hist}</div></div>`:''}
+    ${R.winner?'':secretPanel()}
+    ${R.winner?'':`<button class="ghost full" onclick="if(confirm('Hủy ván và quay lại sảnh?'))newGame()">Hủy ván</button>`}</div></div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.bar>i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%')));
+}
+function randomElim(){
+  const top = R.result.top||[], id = top[Math.floor(Math.random()*top.length)];
+  const upd = {'result/elim':id};
+  applyElim(upd,id,R.players[id].name+' (ngẫu nhiên do hòa)');
+  ref.update(upd);
+}
+function nextRound(){ ref.update({phase:'describe', round:R.round+1, votes:null, result:null, candidates:null}); }
+function revote(tied){ ref.update({phase:'vote', votes:null, result:null, candidates: tied ? R.result.top : (R.candidates||null)}); }
+function newGame(){ view=''; ref.set(null); }
+
+boot();
+</script>
+</body>
+</html>
