@@ -35,7 +35,12 @@
   .players{display:grid;grid-template-columns:repeat(auto-fit,minmax(13vw,1fr));gap:1.4vw;margin-top:1.4vw}
   .pc{background:#fff;border:.25vw solid var(--line);border-radius:2vw;padding:2vw 1vw;text-align:center;box-shadow:var(--shadow);transition:.3s}
   .pc .av{width:clamp(56px,7vw,130px);height:clamp(56px,7vw,130px);border-radius:50%;margin:0 auto 1vw;display:grid;place-items:center;color:#fff;font-size:clamp(26px,3.4vw,64px);font-weight:800}
-  .pc .nm{font-weight:800;font-size:clamp(18px,2.3vw,44px);word-break:break-word}
+  .pc .nm{font-weight:800;font-size:clamp(18px,2.3vw,44px);overflow-wrap:break-word}
+  /* Thẻ gọn dạng ngang cho màn bình chọn: tên không bị ép xuống dòng */
+  .players.compact{display:flex;flex-wrap:wrap;gap:1vw;margin-top:1.6vw}
+  .players.compact .pc{display:flex;align-items:center;gap:.9vw;padding:.8vw 1.5vw .8vw .9vw;border-radius:5vw}
+  .players.compact .pc .av{width:clamp(36px,4vw,76px);height:clamp(36px,4vw,76px);margin:0;font-size:clamp(18px,2vw,38px);flex:none}
+  .players.compact .pc .nm{font-size:clamp(16px,1.9vw,36px);white-space:nowrap;word-break:keep-all}
   .pc .st{margin-top:.5vw;font-size:clamp(12px,1.2vw,22px);color:var(--muted);font-weight:600}
   .pc.dead{opacity:.35;filter:grayscale(1)}
   .pc.dead .nm{text-decoration:line-through}
@@ -223,7 +228,7 @@ function drawVote(){
     <div><div class="title">🗳 ${revote?'Bình chọn lại!':'Bình chọn!'}<br><span class="grad">Ai là gián điệp?</span></div>
       <div class="sub">${revote?'Chỉ chọn giữa những người hòa phiếu':'Mỗi khán giả bình chọn 1 lần'}</div>
       <div style="display:flex;align-items:baseline;gap:1.4vw;margin:1.6vw 0 .6vw"><div class="bigcount grad" id="cnt">0</div><div class="sub">lượt bình chọn</div></div>
-      <div class="players" style="grid-template-columns:repeat(auto-fit,minmax(9vw,1fr))">${sorted(R.players).map(p=>pcard(p,cands.includes(p.id)?'':'dim')).join('')}</div></div>
+      <div class="players compact">${sorted(R.players).map(p=>pcard(p,cands.includes(p.id)?'':'dim')).join('')}</div></div>
     <div class="center"><div class="qrbox"><div id="qr"></div></div>
       <div class="title" style="font-size:clamp(20px,2.6vw,50px);margin-top:1.2vw">Quét mã để bình chọn</div>
       <div class="sub">Phòng <b style="color:var(--ink)">${esc(room)}</b></div></div></div>`;
