@@ -46,6 +46,8 @@
   .pc.dead .nm{text-decoration:line-through}
   .pc.speaking{border-color:var(--primary);box-shadow:0 0 0 .6vw rgba(99,102,241,.2),var(--shadow);transform:translateY(-.8vw) scale(1.04)}
   .pc.dim{opacity:.25}
+  .pc .st.tick{font-size:clamp(22px,3vw,58px);font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums}
+  .pc .st.tick.up{color:var(--red)}
   .cd{font-size:clamp(70px,13vw,240px);font-weight:800;line-height:1;text-align:center;min-height:1em;color:var(--primary);margin-top:.5vw}
   .cd.up{color:var(--red);font-size:clamp(40px,7vw,130px)}
   .qrbox{display:inline-grid;place-items:center;padding:1vw;background:#fff;border-radius:1.6vw;border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -243,14 +245,21 @@ function updateLive(){
   }
   if(R.phase==='describe'){
     const t = R.timer, cd = document.getElementById('cd');
-    document.querySelectorAll('.pc[data-id]').forEach(el=>el.classList.toggle('speaking',!!t&&el.dataset.id===t.id));
+    const left = t ? Math.ceil(10 - (Date.now()+offset-t.at)/1000) : null;
+    document.querySelectorAll('.pc[data-id]').forEach(el=>{
+      const on = !!t && el.dataset.id===t.id;
+      el.classList.toggle('speaking',on);
+      const st = el.querySelector('.st'); if(!st) return;
+      if(st.dataset.base===undefined) st.dataset.base = st.textContent;
+      if(on){
+        st.classList.add('tick'); st.classList.toggle('up',left<=0);
+        st.textContent = left>0 ? '⏱ '+left+'s' : '⏰ Hết giờ!';
+      } else { st.classList.remove('tick','up'); st.textContent = st.dataset.base; }
+    });
     if(cd){
       if(!t){ cd.textContent=''; cd.classList.remove('up'); }
-      else {
-        const left = Math.ceil(10 - (Date.now()+offset-t.at)/1000);
-        if(left>0){ cd.textContent=left; cd.classList.remove('up'); }
-        else { cd.textContent='⏰ Hết giờ!'; cd.classList.add('up'); }
-      }
+      else if(left>0){ cd.textContent=left; cd.classList.remove('up'); }
+      else { cd.textContent='⏰ Hết giờ!'; cd.classList.add('up'); }
     }
   }
 }
