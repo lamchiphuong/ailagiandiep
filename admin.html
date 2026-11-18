@@ -290,7 +290,7 @@ function startGame(){
   names.forEach((n,i)=>{ players['p'+(i+1)] = {name:n, alive:true, role:i===spyIdx?'spy':'civ', pin:pinArr[i]}; });
   showSecret = false;
   nextWords = null;
-  ref.set({phase:'describe', round:1, players, words:{civ,spy}, wordsHist:{r1:{civ,spy}}, candidates:null, votes:null, result:null, winner:null, history:null});
+  ref.set({phase:'describe', round:1, players, words:{civ,spy}, wordsHist:{r1:{civ,spy}}, candidates:null, votes:null, result:null, winner:null, winnerId:null, history:null});
 }
 
 /* --- Describe --- */
@@ -311,7 +311,7 @@ function secretPanel(){
 function drawDescribe(){
   const list = sorted(R.players);
   app.innerHTML = `<div class="card"><h2>🗣 Vòng ${R.round}: Người chơi lần lượt mô tả từ khoá</h2>
-      <div class="muted" style="margin-bottom:14px">Mỗi người tối đa 10 giây — bấm vào thẻ người chơi để bắt đầu đếm giờ.</div>
+      <div class="muted" style="margin-bottom:14px">Mỗi người tối đa 10 giây — bấm vào thẻ người chơi để bắt đầu đếm giờ. Trò chơi kéo dài đến khi chỉ còn 1 người cuối cùng.</div>
       <div class="timer" id="tm"></div>
       <div class="pgrid">${list.map(p=>pcard(p,{click:true,status:p=>p.alive?'Đang thi đấu':'Đã bị loại'})).join('')}</div></div>
     ${secretPanel()}
@@ -345,11 +345,11 @@ function drawVote(){
   drawQR(document.getElementById('qr2'),190); updateLive();
 }
 function updateLive(){ const c=document.getElementById('cnt'); if(c) c.textContent = Object.keys(R.votes||{}).length; }
+/* Luật: chơi đến khi chỉ còn 1 người sống sót — người đó là người chiến thắng. */
 function checkWinner(players){
-  const arr = Object.values(players).filter(p=>p.alive);
-  if(!arr.some(p=>p.role==='spy')) return 'civ';
-  if(arr.length<=2) return 'spy';
-  return null;
+  const arr = Object.entries(players).filter(([id,p])=>p.alive);
+  if(arr.length!==1) return null;
+  return {id:arr[0][0], side: arr[0][1].role==='spy' ? 'spy' : 'civ'};
 }
 function endVote(){
   const total = Object.keys(R.votes||{}).length;
@@ -367,7 +367,9 @@ function endVote(){
 function applyElim(upd, id, label){
   upd['players/'+id+'/alive']=false; upd['history/'+R.round]=label;
   const copy = JSON.parse(JSON.stringify(R.players)); copy[id].alive=false;
-  upd.winner = checkWinner(copy);
+  const w = checkWinner(copy);
+  upd.winner = w ? w.side : null;   /* 'civ' | 'spy' (giữ tương thích trang khán giả) */
+  upd.winnerId = w ? w.id : null;   /* id người chiến thắng cuối cùng */
 }
 
 /* --- Result --- */
@@ -389,8 +391,9 @@ function drawResult(){
       <div class="bar"><i data-w="${r.total?c.n/r.total*100:0}"></i></div></div>`;}).join('');
   let v = '';
   if(R.winner){
-    const w = R.winner==='civ';
-    v += `<div class="win ${w?'':'spy'}">${w?'🎉 Khán giả & người chơi chiến thắng!':'🕵️ Gián điệp chiến thắng!'}</div>`;
+    const wp = R.players[R.winnerId], isSpy = R.winner==='spy';
+    v += `<div class="win ${isSpy?'spy':''}">🏆 ${wp?esc(wp.name):'Người cuối cùng'} chiến thắng!
+      <div style="font-size:16px;font-weight:600;margin-top:6px;opacity:.9">Người sống sót cuối cùng · ${isSpy?'🕵️ là Gián điệp':'Dân thường'}</div></div>`;
   }
   if(r.noVotes){
     v += `<div class="verdict"><div class="emoji">🤷</div><div class="muted">Chưa có ai bình chọn</div></div>
