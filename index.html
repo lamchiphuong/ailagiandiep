@@ -243,7 +243,7 @@ function resultCard(){
   if(r.noVotes) h += `<div class="verdict muted">Chưa có ai bình chọn</div>`;
   else if(r.elim){
     const p = R.players[r.elim];
-    h += `<div class="verdict"><div class="muted">Người bị loại</div><div class="name">${esc(p.name)}</div><div class="word">Từ khoá: ${esc(R.words[p.role])}</div></div>`;
+    h += `<div class="verdict"><div class="muted">Người bị loại</div><div class="name">${esc(p.name)}</div>${R.winner?`<div class="word">Từ khoá: ${esc(R.words[p.role])}</div>`:`<div class="muted" style="margin-top:6px">🔒 Từ khoá được giữ bí mật đến khi kết thúc trò chơi</div>`}</div>`;
   } else h += `<div class="verdict"><div class="muted">⚖️ Hòa phiếu giữa</div><div class="name" style="font-size:22px;color:var(--amber)">${top.map(nm).join(' · ')}</div><div class="muted">Sẽ bình chọn lại</div></div>`;
   h += `</div>`;
   if(R.winner){
