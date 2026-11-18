@@ -320,8 +320,11 @@ function drawDescribe(){
 }
 function startTimer(id){
   clearInterval(tInt); timer={id,left:10}; paintTimer();
-  ref.update({timer:{id, at:firebase.database.ServerValue.TIMESTAMP}});
-  tInt=setInterval(()=>{ timer.left--; if(timer.left<=0) clearInterval(tInt); paintTimer(); },1000);
+  ref.update({timer:{id, left:10}});   /* màn chiếu chỉ hiển thị đúng số giây admin đang đếm */
+  tInt=setInterval(()=>{
+    timer.left--; if(timer.left<=0){ timer.left=0; clearInterval(tInt); }
+    paintTimer(); ref.update({'timer/left':timer.left});
+  },1000);
 }
 function paintTimer(){
   document.querySelectorAll('.pc[data-id]').forEach(el=>el.classList.toggle('speaking',!!timer&&el.dataset.id===timer.id));
