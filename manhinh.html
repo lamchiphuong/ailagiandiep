@@ -279,8 +279,8 @@ function drawResult(){
   if(r.noVotes) v = `<div class="verdict"><div class="emoji">🤷</div><div class="lab">Chưa có ai bình chọn</div></div>`;
   else if(r.elim){
     const p = R.players[r.elim];
-    v = `<div class="verdict"><div class="emoji">🚪</div><div class="lab">Người bị loại</div><div class="name">${esc(p.name)}</div>
-      <div class="word">Từ khoá: ${esc(R.words[p.role])}</div></div>`;
+    v = `<div class="verdict"><div class="emoji">🚪</div><div class="lab">Người bị loại</div><div class="name">${esc(p.name)}</div>${p.role!=='spy'?`<div class="lab" style="margin-top:.6vw;color:var(--amber);font-weight:700">❌ Người chơi này không phải là gián điệp</div>`:''}${R.winner?`
+      <div class="word">Từ khoá: ${esc(R.words[p.role])}</div>`:''}</div>`;
   } else v = `<div class="verdict"><div class="emoji">⚖️</div><div class="lab">Hòa phiếu giữa</div><div class="name" style="color:var(--amber);font-size:clamp(28px,4vw,76px)">${top.map(nm).join(' · ')}</div><div class="lab">Sẽ bình chọn lại</div></div>`;
   const hist = R.history ? Object.entries(R.history).map(([k,x])=>`Vòng ${k}: <b>${esc(x)}</b> bị loại`).join(' &nbsp;·&nbsp; ') : '';
 
