@@ -289,7 +289,8 @@ function startGame(){
   const players = {};
   names.forEach((n,i)=>{ players['p'+(i+1)] = {name:n, alive:true, role:i===spyIdx?'spy':'civ', pin:pinArr[i]}; });
   showSecret = false;
-  ref.set({phase:'describe', round:1, players, words:{civ,spy}, candidates:null, votes:null, result:null, winner:null, history:null});
+  nextWords = null;
+  ref.set({phase:'describe', round:1, players, words:{civ,spy}, wordsHist:{r1:{civ,spy}}, candidates:null, votes:null, result:null, winner:null, history:null});
 }
 
 /* --- Describe --- */
@@ -375,7 +376,8 @@ function drawStopped(){
     <div class="card"><h2>Tiết lộ vai trò & từ khoá</h2>
       <table><tr><th>Người chơi</th><th>Vai trò</th><th>Từ khoá</th></tr>${
       sorted(R.players).map(p=>`<tr><td>${p.alive?'':'<s>'}${esc(p.name)}${p.alive?'':'</s>'}</td><td>${roleName(p.role)}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table>
-      <div class="actions"><button class="good big" onclick="newGame()">🔄 Ván mới</button></div></div>`;
+      <div class="actions"><button class="good big" onclick="newGame()">🔄 Ván mới</button></div>
+      <div class="muted" style="margin-top:12px;line-height:1.8">${wordsList()}</div></div>`;
 }
 function drawResult(){
   if(R.winner==='stopped') return drawStopped();
@@ -397,7 +399,16 @@ function drawResult(){
     const p = R.players[r.elim];
     v += `<div class="verdict"><div class="emoji">🚪</div><div class="muted">Người bị loại</div><div class="name">${esc(p.name)}</div>
       <div class="word">Từ khoá: ${esc(R.words[p.role])}</div></div>`;
-    if(!R.winner) v += `<div class="actions"><button class="primary big" onclick="nextRound()">Sang vòng ${R.round+1} ▶</button></div>`;
+    if(!R.winner){
+      if(!nextWords || nextWords.round!==R.round) nextWords = {round:R.round, ...randPair()};
+      const opts = PAIRS.map((q,i)=>`<option value="${i}">${esc(q[0])} — ${esc(q[1])}</option>`).join('');
+      v += `<div style="margin-top:16px;text-align:left"><label class="l">🔤 Từ khoá cho vòng ${R.round+1} (mỗi vòng một cặp mới)</label>
+        <select onchange="pickNext(this.value)"><option value="">— Chọn cặp có sẵn —</option>${opts}</select>
+        <div class="two"><div><label class="l">Từ của DÂN</label><input type="text" id="nciv" value="${esc(nextWords.civ)}" oninput="saveNext()"></div>
+          <div><label class="l">Từ của GIÁN ĐIỆP</label><input type="text" id="nspy" value="${esc(nextWords.spy)}" oninput="saveNext()"></div></div>
+        <div class="actions"><button class="ghost" onclick="randomNext()">🎲 Ngẫu nhiên</button><button class="ghost" onclick="swapNext()">⇄ Đảo hai từ</button></div></div>
+        <div class="actions"><button class="primary big" onclick="nextRound()">Sang vòng ${R.round+1} ▶</button></div>`;
+    }
   } else {
     v += `<div class="verdict"><div class="emoji">⚖️</div><div class="muted">Hòa phiếu giữa</div><div class="name" style="font-size:30px;color:var(--amber)">${top.map(nm).join(' · ')}</div></div>
       <div class="actions"><button class="primary" onclick="revote(true)">🗳 Bình chọn lại giữa những người hòa</button><button class="ghost" onclick="randomElim()">🎲 Loại ngẫu nhiên</button></div>`;
@@ -407,7 +418,7 @@ function drawResult(){
       sorted(R.players).map(p=>`<tr><td>${p.alive?'':'<s>'}${esc(p.name)}${p.alive?'':'</s>'}</td><td>${roleName(p.role)}</td><td>${esc(R.words[p.role])}</td></tr>`).join('')}</table>
       <div class="actions"><button class="good big" onclick="newGame()">🔄 Ván mới</button></div>`;
   }
-  const hist = R.history ? Object.entries(R.history).map(([k,x])=>`Vòng ${k}: <b>${esc(x)}</b> bị loại`).join('<br>') : '';
+  const hist = R.history ? Object.entries(R.history).map(([k,x])=>{ const w=(R.wordsHist||{})['r'+k]; return `Vòng ${k}: <b>${esc(x)}</b> bị loại${w?` · Dân: ${esc(w.civ)} / Gián điệp: ${esc(w.spy)}`:''}`; }).join('<br>') : '';
   app.innerHTML = `<div class="cols"><div class="card"><h2>📊 Kết quả vòng ${r.round||R.round} · ${r.total||0} lượt bình chọn</h2>${bars}</div>
     <div><div class="card">${v}</div>${hist?`<div class="card"><h2>Lịch sử</h2><div class="muted" style="line-height:1.8">${hist}</div></div>`:''}
     ${R.winner?'':secretPanel()}
@@ -420,7 +431,34 @@ function randomElim(){
   applyElim(upd,id,R.players[id].name+' (ngẫu nhiên do hòa)');
   ref.update(upd);
 }
-function nextRound(){ ref.update({phase:'describe', round:R.round+1, votes:null, result:null, candidates:null}); }
+let nextWords = null;
+function randPair(){
+  const cur = R && R.words ? [R.words.civ,R.words.spy].map(s=>String(s).toLowerCase()) : [];
+  const used = Object.values((R&&R.wordsHist)||{}).flatMap(w=>[w.civ,w.spy]).map(s=>String(s).toLowerCase());
+  let pool = PAIRS.filter(p=>!p.some(w=>used.includes(w.toLowerCase())));
+  if(!pool.length) pool = PAIRS.filter(p=>!p.some(w=>cur.includes(w.toLowerCase())));
+  if(!pool.length) pool = PAIRS;
+  const p = pool[Math.floor(Math.random()*pool.length)], f = Math.random()<.5;
+  return {civ:f?p[1]:p[0], spy:f?p[0]:p[1]};
+}
+function saveNext(){ if(!nextWords) return; nextWords.civ=document.getElementById('nciv').value; nextWords.spy=document.getElementById('nspy').value; }
+function pickNext(i){ if(i==='') return; document.getElementById('nciv').value=PAIRS[i][0]; document.getElementById('nspy').value=PAIRS[i][1]; saveNext(); }
+function randomNext(){ const p=randPair(); document.getElementById('nciv').value=p.civ; document.getElementById('nspy').value=p.spy; saveNext(); }
+function swapNext(){ const a=document.getElementById('nciv'),b=document.getElementById('nspy'); const t=a.value; a.value=b.value; b.value=t; saveNext(); }
+function wordsList(){
+  const h = R.wordsHist||{};
+  return Object.keys(h).sort((a,b)=>a.slice(1)-b.slice(1)).map(k=>`Vòng ${k.slice(1)}: Dân <b>${esc(h[k].civ)}</b> · Gián điệp <b>${esc(h[k].spy)}</b>`).join('<br>');
+}
+function nextRound(){
+  saveNext();
+  const civ = (nextWords&&nextWords.civ||'').trim(), spy = (nextWords&&nextWords.spy||'').trim();
+  if(!civ||!spy){ alert('Hãy chọn/nhập cặp từ khoá cho vòng tiếp theo.'); return; }
+  if(civ.toLowerCase()===spy.toLowerCase()){ alert('Hai từ khoá phải khác nhau.'); return; }
+  if(civ===R.words.civ && spy===R.words.spy && !confirm('Cặp từ khoá giống hệt vòng trước. Vẫn tiếp tục?')) return;
+  const n = R.round+1;
+  nextWords = null;
+  ref.update({phase:'describe', round:n, votes:null, result:null, candidates:null, words:{civ,spy}, ['wordsHist/r'+n]:{civ,spy}});
+}
 function revote(tied){ ref.update({phase:'vote', votes:null, result:null, candidates: tied ? R.result.top : (R.candidates||null)}); }
 function newGame(){ view=''; ref.set(null); }
 
