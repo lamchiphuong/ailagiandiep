@@ -245,7 +245,7 @@ function updateLive(){
   }
   if(R.phase==='describe'){
     const t = R.timer, cd = document.getElementById('cd');
-    const left = t ? Math.ceil(10 - (Date.now()+offset-t.at)/1000) : null;
+    const left = t ? Number(t.left) : null;   /* lấy trực tiếp từ admin, không tự đếm */
     document.querySelectorAll('.pc[data-id]').forEach(el=>{
       const on = !!t && el.dataset.id===t.id;
       el.classList.toggle('speaking',on);
